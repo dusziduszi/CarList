@@ -15,17 +15,23 @@ namespace CarList
         public string Name { get; set; }
         public string Color { get; set; }
     }
-        public class Startup
+    public class Startup
     {
         // This method gets called by the runtime. Use this method to add services to the container.
         // For more information on how to configure your application, visit https://go.microsoft.com/fwlink/?LinkID=398940
-        public void ConfigureServices(IServiceCollection services) {}
-
-        private static void carList(IApplicationBuilder app, List<Car> theCars)
+        public void ConfigureServices(IServiceCollection services)
         {
+            services.AddSingleton<List<Car>>();
+        }
+
+        private static void carList(IApplicationBuilder app)
+        {
+
             app.Run(async context =>
             {
-                await context.Response.WriteAsync("Strona carList "+ "\n");
+
+                var theCars = context.RequestServices.GetService<List<Car>>();
+                await context.Response.WriteAsync("Strona carList " + "\n");
                 foreach (Car theCar in theCars)
                 {
                     await context.Response.WriteAsync(theCar.Name + "  " + theCar.Color + "\n");
@@ -35,27 +41,20 @@ namespace CarList
         }
 
         //adding new car with a name and color
-        private  static void addNewCar(IApplicationBuilder app)
+        private static void addNewCar(IApplicationBuilder app)
         {
-            List<Car> theCars = new List<Car> { };
-
-
             app.Run(async context =>
             {
-                var nameOfNewCar = context.Request.Query["name"];
-                var colorOfNewCar = context.Request.Query["color"];
-
-                if (nameOfNewCar != "" | colorOfNewCar != "") //moja walidacja nie dzia³a :(
-                { 
+                var theCars = context.RequestServices.GetService<List<Car>>();
+                var nameOfNewCar = context.Request.Query["name"].ToString();
+                var colorOfNewCar = context.Request.Query["color"].ToString();
+                
+                if (nameOfNewCar != "" || colorOfNewCar != "") 
+                {
                     theCars.Add(new Car() { Name = nameOfNewCar, Color = colorOfNewCar });
                 }
-                await context.Response.WriteAsync("strona dodawania cars" + "\n");
-
-                foreach (Car theCar in theCars)
-                {                    
-                    await context.Response.WriteAsync(theCar.Name + "  " + theCar.Color + "\n");
-                }
-                 context.Response.Redirect("/CarList"); //nie dziala
+              
+                context.Response.Redirect("/CarList"); 
 
             });
         }
@@ -70,14 +69,14 @@ namespace CarList
             }
 
 
-           // List<Car> theCars = new List<Car> { };
-           // app.Map("/addNewcar", addNewCar(app, theCars);
+           
+            app.MapWhen(app => app.Request.Path.StartsWithSegments("/addNewCar") & app.Request.Query.ContainsKey("name"), addNewCar);
+          
+            app.Map("/CarList", carList);
 
-            app.Map("/addNewcar", addNewCar);
-            
-            
+           
             app.Run(async context =>
-            {                
+            {
                 await context.Response.WriteAsync("cos");
             });
 
@@ -89,7 +88,7 @@ namespace CarList
 
         }
 
-        
+
     }
-    }
+}
 
