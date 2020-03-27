@@ -7,9 +7,37 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Microsoft.AspNetCore.Mvc;
 
 namespace CarList
 {
+    [Route("Cars/[action]")]
+    public class CarController : Controller
+    {
+        private List<Car> Cars { get; }
+
+        public CarController(List<Car> cars)
+        {
+            Cars = cars;
+        }
+
+        [HttpGet]
+        public IActionResult List() => Ok(Cars);
+
+        [HttpGet]
+        public IActionResult Add(String name, String color)
+        {
+            Cars.Add(new Car
+            {
+                Name = name,
+                Color = color
+
+            });
+            return Ok();
+
+        }
+
+    }
     public class Car
     {
         public string Name { get; set; }
@@ -21,7 +49,9 @@ namespace CarList
         // For more information on how to configure your application, visit https://go.microsoft.com/fwlink/?LinkID=398940
         public void ConfigureServices(IServiceCollection services)
         {
-            services.AddSingleton<List<Car>>();
+           // services.AddSingleton<List<Car>>();
+            services.AddControllers();
+            services.AddRouting();
         }
 
         private static void carList(IApplicationBuilder app)
@@ -48,13 +78,13 @@ namespace CarList
                 var theCars = context.RequestServices.GetService<List<Car>>();
                 var nameOfNewCar = context.Request.Query["name"].ToString();
                 var colorOfNewCar = context.Request.Query["color"].ToString();
-                
-                if (nameOfNewCar != "" || colorOfNewCar != "") 
+
+                if (nameOfNewCar != "" || colorOfNewCar != "")
                 {
                     theCars.Add(new Car() { Name = nameOfNewCar, Color = colorOfNewCar });
                 }
-              
-                context.Response.Redirect("/CarList"); 
+
+                context.Response.Redirect("/CarList");
 
             });
         }
@@ -68,16 +98,15 @@ namespace CarList
                 app.UseDeveloperExceptionPage();
             }
 
+            app.UseRouting();
 
-           
-            app.MapWhen(app => app.Request.Path.StartsWithSegments("/addNewCar") & app.Request.Query.ContainsKey("name"), addNewCar);
-          
-            app.Map("/CarList", carList);
+            //app.MapWhen(app => app.Request.Path.StartsWithSegments("/addNewCar") & app.Request.Query.ContainsKey("name"), addNewCar);
+            //app.Map("/CarList", carList);
 
-           
+
             app.Run(async context =>
             {
-                await context.Response.WriteAsync("cos");
+                await context.Response.WriteAsync("domyslne");
             });
 
 
