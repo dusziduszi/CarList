@@ -33,7 +33,9 @@ namespace CarList
                 Color = color
 
             });
-            return Ok();
+
+            string url = string.Format("/Cars/List");
+            return Redirect(url);
 
         }
 
@@ -49,7 +51,7 @@ namespace CarList
         // For more information on how to configure your application, visit https://go.microsoft.com/fwlink/?LinkID=398940
         public void ConfigureServices(IServiceCollection services)
         {
-           // services.AddSingleton<List<Car>>();
+            services.AddSingleton<List<Car>>();
             services.AddControllers();
             services.AddRouting();
         }
@@ -99,6 +101,11 @@ namespace CarList
             }
 
             app.UseRouting();
+
+            app.UseEndpoints(endpoints =>
+            {
+                endpoints.MapControllers();
+            });
 
             //app.MapWhen(app => app.Request.Path.StartsWithSegments("/addNewCar") & app.Request.Query.ContainsKey("name"), addNewCar);
             //app.Map("/CarList", carList);
